@@ -5,12 +5,12 @@ use emu::registers::Registers;
 use emu::rom::ROM;
 
 fn main() {
-    // cpu_register_debug();
+    cpu_register_debug();
     let memory = Memory::default();
-    // print!("{:?}", &memory);
+    print_byte_vector(&memory.registers);
     let mut rom = ROM { data: None };
     rom.load_rom_from_file("rom.gb");
-    if let Some(romdata) = rom.data {
+    if let Some(ref romdata) = rom.data {
         print_byte_vector(romdata);
     }
 }
@@ -36,7 +36,7 @@ fn cpu_register_debug() {
 }
 
 #[allow(dead_code)]
-fn print_byte_vector(data: Vec<u8>) {
+fn print_byte_vector(data: &Vec<u8>) {
     for byte in data {
         print!("{:2X} ", &byte)
     }
