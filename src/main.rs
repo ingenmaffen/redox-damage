@@ -1,11 +1,11 @@
 mod emu;
 
+use emu::cpu::CPU;
 use emu::memory::Memory;
-use emu::registers::Registers;
 use emu::rom::ROM;
 
 fn main() {
-    // cpu_register_debug();
+    let mut cpu = CPU::default();
     let mut memory = Memory::default();
     let mut rom = ROM { data: None };
     rom.load_rom_from_file("rom.gb");
@@ -13,27 +13,18 @@ fn main() {
         memory.load_rom_data_into_bank_00(romdata);
         memory.load_rom_data_into_bank_01(romdata);
     }
-    print_byte_vector(&memory.registers);
+    // print_byte_vector(&memory.registers);
+    cpu_register_debug(&mut cpu);
 }
 
 #[allow(dead_code)]
-fn cpu_register_debug() {
-    let mut registers = Registers {
-        a: 0x12,
-        f: 0x34,
-        b: 0,
-        c: 0,
-        d: 0,
-        e: 0,
-        h: 0,
-        l: 0,
-    };
-
-    println!("registers: {:#2X?}", registers);
-    println!("AF as 1234: {:#2X?}", registers.get_af());
-    registers.set_af(0x5678);
-    println!("A: {:#2X}, F: {:#2X}", registers.a, registers.f);
-    println!("registers: {:#2X?}", registers);
+fn cpu_register_debug(cpu: &mut CPU) {
+    println!("registers: {:#2X?}", cpu.registers);
+    println!("AF with default values: {:#2X?}", cpu.registers.get_af());
+    cpu.registers.set_af(0x5678);
+    println!("registers: {:#2X?}", cpu.registers);
+    println!("AF with updated values: {:#2X?}", cpu.registers.get_af());
+    println!("CPU: {:#2X?}", cpu);
 }
 
 #[allow(dead_code)]
