@@ -1,18 +1,19 @@
-pub mod emu;
+mod emu;
 
 use emu::memory::Memory;
 use emu::registers::Registers;
 use emu::rom::ROM;
 
 fn main() {
-    cpu_register_debug();
-    let memory = Memory::default();
-    print_byte_vector(&memory.registers);
+    // cpu_register_debug();
+    let mut memory = Memory::default();
     let mut rom = ROM { data: None };
     rom.load_rom_from_file("rom.gb");
     if let Some(ref romdata) = rom.data {
-        print_byte_vector(romdata);
+        memory.load_rom_data_into_bank_00(romdata);
+        memory.load_rom_data_into_bank_01(romdata);
     }
+    print_byte_vector(&memory.registers);
 }
 
 #[allow(dead_code)]
