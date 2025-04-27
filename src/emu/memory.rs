@@ -1,12 +1,12 @@
 #[derive(Debug)]
 pub struct Memory {
-    pub registers: Vec<u8>,
+    pub addresses: Vec<u8>,
 }
 
 impl Default for Memory {
     fn default() -> Self {
         Self {
-            registers: initialize_memory(),
+            addresses: initialize_memory(),
         }
     }
 }
@@ -19,7 +19,7 @@ fn initialize_memory() -> Vec<u8> {
 impl Memory {
     pub fn load_rom_data_into_bank_00(&mut self, romdata: &Vec<u8>) {
         for i in 0x0000..=0x3FFF {
-            self.registers[i] = romdata[i];
+            self.addresses[i] = romdata[i];
         }
     }
 
@@ -32,7 +32,7 @@ impl Memory {
             panic!("ROM not supported")
         }
         for i in 0x4000..=0x7FFF {
-            self.registers[i] = romdata[i];
+            self.addresses[i] = romdata[i];
         }
     }
 }
