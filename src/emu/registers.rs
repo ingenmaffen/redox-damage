@@ -46,6 +46,42 @@ impl Registers {
     pub fn get_hl(&self) -> u16 {
         ((self.h as u16) << 8) | self.l as u16
     }
+
+    pub fn set_flag_z(&mut self, value: bool) {
+        self.f = set_flag_with_expression(&self.f, value, 0b10000000);
+    }
+
+    pub fn get_flag_z(&self) -> bool {
+        let z = self.f & 0b10000000;
+        z != 0
+    }
+
+    pub fn set_flag_n(&mut self, value: bool) {
+        self.f = set_flag_with_expression(&self.f, value, 0b01000000);
+    }
+
+    pub fn get_flag_n(&self) -> bool {
+        let n = self.f & 0b01000000;
+        n != 0
+    }
+
+    pub fn set_flag_h(&mut self, value: bool) {
+        self.f = set_flag_with_expression(&self.f, value, 0b00100000);
+    }
+
+    pub fn get_flag_h(&self) -> bool {
+        let h = self.f & 0b00100000;
+        h != 0
+    }
+
+    pub fn set_flag_c(&mut self, value: bool) {
+        self.f = set_flag_with_expression(&self.f, value, 0b00010000);
+    }
+
+    pub fn get_flag_c(&self) -> bool {
+        let c = self.f & 0b00010000;
+        c != 0
+    }
 }
 
 fn get_upper_byte(value: u16) -> u8 {
@@ -54,4 +90,16 @@ fn get_upper_byte(value: u16) -> u8 {
 
 fn get_lower_byte(value: u16) -> u8 {
     (value & 0x00FF) as u8
+}
+
+fn set_flag_with_expression(flags: &u8, value: bool, flag_id_exp: u8) -> u8 {
+    if value {
+        flags | flag_id_exp
+    } else {
+        flags & invert_bytes(flag_id_exp)
+    }
+}
+
+fn invert_bytes(value: u8) -> u8 {
+    value ^ 0b11111111
 }

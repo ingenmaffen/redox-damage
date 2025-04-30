@@ -1,13 +1,14 @@
 mod emu;
 
 use emu::cpu::CPU;
-use emu::instructions;
+use emu::instruction_mapper;
 use emu::memory::Memory;
 use emu::rom::ROM;
 
 fn main() {
     let mut cpu = CPU::default();
     let mut memory = Memory::default();
+
     let mut rom = ROM { data: None };
     rom.load_rom_from_file("rom.gb");
     if let Some(ref romdata) = rom.data {
@@ -17,6 +18,6 @@ fn main() {
 
     cpu.pc = 0x0100;
     while cpu.pc < 0xFFFF {
-        instructions::execute_instruction(&mut cpu, &mut memory);
+        instruction_mapper::execute_instruction(&mut cpu, &mut memory);
     }
 }
