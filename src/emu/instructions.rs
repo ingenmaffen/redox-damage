@@ -1,4 +1,5 @@
 pub mod arithmetic;
+pub mod bit;
 pub mod decrement;
 pub mod enums;
 pub mod increment;
