@@ -42,7 +42,7 @@ pub fn add_to_hl(cpu: &mut CPU, target: InstructionSourceTarget) {
         InstructionSourceTarget::SP => cpu.sp,
         _ => panic!("Target not supported"),
     };
-    let mut new_value: u32 = (cpu.registers.get_hl() + value) as u32;
+    let mut new_value: u32 = cpu.registers.get_hl() as u32 + value as u32;
     if new_value > u16::MAX as u32 {
         new_value = new_value % u16::MAX as u32;
         cpu.registers.set_flag_c(true);
@@ -96,11 +96,11 @@ pub fn adc_n8(cpu: &mut CPU, memory: &Memory) {
 }
 
 fn handle_addition(cpu: &mut CPU, added_value: u8) {
-    if cpu.registers.a + added_value <= u8::MAX {
+    let new_value: u16 = cpu.registers.a as u16 + added_value as u16;
+    if new_value <= u8::MAX as u16 {
         cpu.registers.a += added_value;
     } else {
-        let new_a: u8 = cpu.registers.a + added_value % u8::MAX;
-        cpu.registers.a = new_a;
+        cpu.registers.a = (new_value % u8::MAX as u16) as u8;
     }
 }
 
@@ -220,7 +220,13 @@ fn handle_sub(cpu: &mut CPU, subtracted_value: u8, is_sbc_a: bool) {
 
 fn set_sub_flags(cpu: &mut CPU, subtracted_value: u8, is_sbc_a: bool) {
     // Flags: Z, 1, H, C
-    let new_value: u8 = cpu.registers.a - subtracted_value;
+    let new_value: u8;
+    if subtracted_value <= cpu.registers.a {
+        new_value = cpu.registers.a - subtracted_value;
+    } else {
+        let diff: u8 = subtracted_value - cpu.registers.a;
+        new_value = 0xFF - diff + 1;
+    }
     cpu.registers.set_flag_z(new_value == 0);
     cpu.registers.set_flag_n(true);
     cpu.registers.set_flag_h((new_value & 0xF0) == 0);
