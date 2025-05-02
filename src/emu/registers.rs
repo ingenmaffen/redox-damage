@@ -16,8 +16,8 @@ impl Registers {
         self.f = get_lower_byte(value);
     }
 
-    pub fn get_af(&self) -> u16 {
-        ((self.a as u16) << 8) | self.f as u16
+    pub fn get_f(&self) -> u8 {
+        self.f
     }
 
     pub fn set_bc(&mut self, value: u16) {
@@ -93,11 +93,7 @@ fn get_lower_byte(value: u16) -> u8 {
 }
 
 fn set_flag_with_expression(flags: &u8, value: bool, flag_id_exp: u8) -> u8 {
-    if value {
-        flags | flag_id_exp
-    } else {
-        flags & invert_bytes(flag_id_exp)
-    }
+    if value { flags | flag_id_exp } else { flags & invert_bytes(flag_id_exp) }
 }
 
 fn invert_bytes(value: u8) -> u8 {

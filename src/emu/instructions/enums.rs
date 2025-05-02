@@ -17,6 +17,7 @@ pub enum InstructionSourceTarget {
     DE,
     SP,
     HL,
+    AF,
     HlAsPointer,
     BcAsPointer,
     DeAsPointer,

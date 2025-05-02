@@ -34,6 +34,27 @@ pub fn add_n8(cpu: &mut CPU, memory: &Memory) {
     cpu.pc += 2;
 }
 
+pub fn add_to_hl(cpu: &mut CPU, target: InstructionSourceTarget) {
+    let value = match target {
+        InstructionSourceTarget::BC => cpu.registers.get_bc(),
+        InstructionSourceTarget::DE => cpu.registers.get_de(),
+        InstructionSourceTarget::HL => cpu.registers.get_hl(),
+        InstructionSourceTarget::SP => cpu.sp,
+        _ => panic!("Target not supported"),
+    };
+    let mut new_value: u32 = (cpu.registers.get_hl() + value) as u32;
+    if new_value > u16::MAX as u32 {
+        new_value = new_value % u16::MAX as u32;
+        cpu.registers.set_flag_c(true);
+    } else {
+        cpu.registers.set_flag_c(true);
+    }
+    cpu.registers.set_flag_n(false);
+    cpu.registers.set_flag_h(new_value & 0b0000011111111111 == 0);
+    cpu.registers.set_hl(new_value as u16);
+    cpu.pc += 1;
+}
+
 pub fn adc(cpu: &mut CPU, source: InstructionSourceTarget) {
     let mut added_value = match source {
         InstructionSourceTarget::B => cpu.registers.b,
