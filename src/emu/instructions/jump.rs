@@ -25,3 +25,21 @@ pub fn jp(cpu: &mut CPU, memory: &Memory) {
 pub fn jp_hl(cpu: &mut CPU) {
     cpu.pc = cpu.registers.get_hl();
 }
+
+pub fn jr_with_operand(cpu: &mut CPU, memory: &mut Memory, additional_operand: JpOperands) {
+    let flag_value = match additional_operand {
+        JpOperands::Z => cpu.registers.get_flag_z(),
+        JpOperands::NZ => !cpu.registers.get_flag_z(),
+        JpOperands::C => cpu.registers.get_flag_c(),
+        JpOperands::NC => !cpu.registers.get_flag_c(),
+    };
+    if flag_value {
+        jr(cpu, memory);
+    } else {
+        cpu.pc += 2;
+    }
+}
+
+pub fn jr(cpu: &mut CPU, memory: &Memory) {
+    cpu.pc += memory.addresses[cpu.pc as usize + 1] as u16;
+}

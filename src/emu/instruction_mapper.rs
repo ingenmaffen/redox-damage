@@ -36,7 +36,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0x15 => instructions::decrement::dec(cpu, InstructionSourceTarget::D),
         0x16 => instructions::load::ld_n8(cpu, memory, InstructionSourceTarget::D),
         0x17 => (), // RLA
-        0x18 => (), // JR e8
+        0x18 => instructions::jump::jr(cpu, memory),
         0x19 => (), // ADD HL, DE
         0x1A => (), // LD A, [DE]
         0x1B => instructions::decrement::dec(cpu, InstructionSourceTarget::DE),
@@ -44,7 +44,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0x1D => instructions::decrement::dec(cpu, InstructionSourceTarget::E),
         0x1E => instructions::load::ld_n8(cpu, memory, InstructionSourceTarget::E),
         0x1F => (), // RRA
-        0x20 => (), // JR NZ, e8
+        0x20 => instructions::jump::jr_with_operand(cpu, memory, JpOperands::NZ),
         0x21 => instructions::load::ld_n16(cpu, memory, InstructionSourceTarget::HL),
         0x22 => instructions::load::ld_a_to_pointer(cpu, memory, InstructionSourceTarget::HlPlus),
         0x23 => instructions::increment::inc(cpu, InstructionSourceTarget::HL),
@@ -52,7 +52,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0x25 => instructions::decrement::dec(cpu, InstructionSourceTarget::H),
         0x26 => instructions::load::ld_n8(cpu, memory, InstructionSourceTarget::H),
         0x27 => (), // DAA
-        0x28 => (), // JR Z, e8
+        0x28 => instructions::jump::jr_with_operand(cpu, memory, JpOperands::Z),
         0x29 => (), // ADD HL, HL
         0x2A => (), // LD A, [HL+]
         0x2B => instructions::decrement::dec(cpu, InstructionSourceTarget::HL),
@@ -60,7 +60,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0x2D => instructions::decrement::dec(cpu, InstructionSourceTarget::L),
         0x2E => instructions::load::ld_n8(cpu, memory, InstructionSourceTarget::L),
         0x2F => (), // CPL
-        0x30 => (), // JR NC, e8
+        0x30 => instructions::jump::jr_with_operand(cpu, memory, JpOperands::NC),
         0x31 => instructions::load::ld_n16(cpu, memory, InstructionSourceTarget::SP),
         0x32 => instructions::load::ld_a_to_pointer(cpu, memory, InstructionSourceTarget::HlMinus),
         0x33 => instructions::increment::inc(cpu, InstructionSourceTarget::SP),
@@ -68,7 +68,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0x35 => instructions::decrement::dec_r8_at_hl(cpu, memory),
         0x36 => instructions::load::ld_n8(cpu, memory, InstructionSourceTarget::HlAsPointer),
         0x37 => (), // SCF
-        0x38 => (), // JR C, e8
+        0x38 => instructions::jump::jr_with_operand(cpu, memory, JpOperands::C),
         0x39 => (), // ADD HL, SP
         0x3A => (), // LD A, [HL-]
         0x3B => instructions::decrement::dec(cpu, InstructionSourceTarget::SP),
@@ -210,7 +210,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0xC3 => instructions::jump::jp(cpu, memory),
         0xC4 => (),
         0xC5 => (),
-        0xC6 => (),
+        0xC6 => instructions::arithmetic::add_n8(cpu, memory),
         0xC7 => (),
         0xC8 => (),
         0xC9 => (),
@@ -218,7 +218,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0xCB => handle_cb_prefixed_instruction(cpu, memory),
         0xCC => (),
         0xCD => (),
-        0xCE => (),
+        0xCE => instructions::arithmetic::adc_n8(cpu, memory),
         0xCF => (),
         0xD0 => (),
         0xD1 => (),
@@ -226,7 +226,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         // 0xD3 => (),
         0xD4 => (),
         0xD5 => (),
-        0xD6 => (),
+        0xD6 => instructions::arithmetic::sub_n8(cpu, memory),
         0xD7 => (),
         0xD8 => (),
         0xD9 => (),
@@ -234,7 +234,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         // 0xDB => (),
         0xDC => (),
         // 0xDD => (),
-        0xDE => (),
+        0xDE => instructions::arithmetic::sbc_n8(cpu, memory),
         0xDF => (),
         0xE0 => (),
         0xE1 => (),
@@ -242,7 +242,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         // 0xE3 => (),
         // 0xE4 => (),
         0xE5 => (),
-        0xE6 => (),
+        0xE6 => instructions::logical::and_n8(cpu, memory),
         0xE7 => (),
         0xE8 => (),
         0xE9 => instructions::jump::jp_hl(cpu),
@@ -250,7 +250,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         // 0xEB => (),
         // 0xEC => (),
         // 0xED => (),
-        0xEE => (),
+        0xEE => instructions::logical::xor_n8(cpu, memory),
         0xEF => (),
         0xF0 => (),
         0xF1 => (),
@@ -258,7 +258,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0xF3 => (),
         // 0xF4 => (),
         0xF5 => (),
-        0xF6 => (),
+        0xF6 => instructions::logical::or_n8(cpu, memory),
         0xF7 => (),
         0xF8 => (),
         0xF9 => (),
@@ -266,7 +266,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
         0xFB => (),
         // 0xFC => (),
         // 0xFD => (),
-        0xFE => (),
+        0xFE => instructions::arithmetic::cp_n8(cpu, memory),
         0xFF => (),
         _ => panic!("Operation not supported"),
     }

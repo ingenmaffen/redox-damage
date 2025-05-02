@@ -27,6 +27,13 @@ pub fn and_hl(cpu: &mut CPU, memory: &Memory) {
     cpu.pc += 1;
 }
 
+pub fn and_n8(cpu: &mut CPU, memory: &Memory) {
+    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    cpu.registers.a = cpu.registers.a & and_value;
+    set_and_flags(cpu);
+    cpu.pc += 2;
+}
+
 fn set_and_flags(cpu: &mut CPU) {
     // Flags: Z, 0, 1, 0
     cpu.registers.set_flag_z(cpu.registers.a == 0);
@@ -59,6 +66,13 @@ pub fn xor_hl(cpu: &mut CPU, memory: &Memory) {
     cpu.pc += 1;
 }
 
+pub fn xor_n8(cpu: &mut CPU, memory: &Memory) {
+    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    cpu.registers.a = cpu.registers.a ^ and_value;
+    set_or_xor_flags(cpu);
+    cpu.pc += 2;
+}
+
 pub fn or(cpu: &mut CPU, source: InstructionSourceTarget) {
     let and_value = match source {
         InstructionSourceTarget::B => cpu.registers.b,
@@ -81,6 +95,13 @@ pub fn or_hl(cpu: &mut CPU, memory: &Memory) {
     cpu.registers.a = cpu.registers.a | and_value;
     set_or_xor_flags(cpu);
     cpu.pc += 1;
+}
+
+pub fn or_n8(cpu: &mut CPU, memory: &Memory) {
+    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    cpu.registers.a = cpu.registers.a | and_value;
+    set_or_xor_flags(cpu);
+    cpu.pc += 2;
 }
 
 fn set_or_xor_flags(cpu: &mut CPU) {
