@@ -2,6 +2,19 @@ use super::memory::Memory;
 
 pub fn boot_sequence(memory: &mut Memory) {
     unpack_and_load_logo(memory);
+    setup_tile_data(memory);
+}
+
+fn setup_tile_data(memory: &mut Memory) {
+    let mut tile: u8 = 0x01;
+    for i in 0x9904..=0x990F {
+        memory.addresses[i] = tile;
+        tile += 1;
+    }
+    for i in 0x9924..=0x992F {
+        memory.addresses[i] = tile;
+        tile += 1;
+    }
 }
 
 fn unpack_and_load_logo(memory: &mut Memory) {
