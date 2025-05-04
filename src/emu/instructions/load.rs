@@ -63,12 +63,20 @@ pub fn ld_a_to_pointer(cpu: &mut CPU, memory: &mut Memory, target_pointer: Instr
         InstructionSourceTarget::DeAsPointer => cpu.registers.get_de(),
         InstructionSourceTarget::HlPlus => {
             let address = cpu.registers.get_hl();
-            cpu.registers.set_hl(address + 1);
+            if cpu.registers.get_hl() == u16::MAX {
+                cpu.registers.set_hl(0);
+            } else {
+                cpu.registers.set_hl(address + 1);
+            }
             address
         }
         InstructionSourceTarget::HlMinus => {
             let address = cpu.registers.get_hl();
-            cpu.registers.set_hl(address + 1);
+            if cpu.registers.get_hl() == 0 {
+                cpu.registers.set_hl(u16::MAX);
+            } else {
+                cpu.registers.set_hl(address - 1);
+            }
             address
         }
         _ => panic!("Target pointer not supported"),
