@@ -12,7 +12,7 @@ impl Default for Memory {
 }
 
 fn initialize_memory() -> Vec<u8> {
-    let len: usize = u16::MAX as usize;
+    let len: usize = u16::MAX as usize + 1;
     vec![0; len]
 }
 
