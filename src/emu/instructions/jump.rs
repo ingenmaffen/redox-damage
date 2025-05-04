@@ -41,7 +41,7 @@ pub fn jr_with_operand(cpu: &mut CPU, memory: &mut Memory, additional_operand: J
 }
 
 pub fn jr(cpu: &mut CPU, memory: &Memory) {
-    let relative_address: i8 = memory.addresses[cpu.pc as usize + 1] as i8;
+    let relative_address: i8 = utils::get_e8(cpu, memory);
     cpu.pc += 2;
     if relative_address < 0 {
         cpu.pc -= relative_address.abs() as u16;

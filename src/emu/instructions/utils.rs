@@ -7,3 +7,7 @@ pub fn get_next_bytes_little_endian(cpu: &CPU, memory: &Memory) -> u16 {
     address = address << 8;
     address | memory.addresses[pc_as_usize + 1] as u16
 }
+
+pub fn get_e8(cpu: &CPU, memory: &Memory) -> i8 {
+    memory.addresses[cpu.pc as usize + 1] as i8
+}

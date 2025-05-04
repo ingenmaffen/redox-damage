@@ -23,4 +23,5 @@ pub enum InstructionSourceTarget {
     DeAsPointer,
     HlPlus,
     HlMinus,
+    CAsPointer,
 }

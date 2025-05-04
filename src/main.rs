@@ -17,6 +17,7 @@ fn main() {
     }
 
     cpu.pc = 0x0100;
+    cpu.sp = 0xFFFE;
     while cpu.pc < 0xFFFF {
         instruction_mapper::execute_instruction(&mut cpu, &mut memory);
     }

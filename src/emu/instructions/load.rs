@@ -1,5 +1,5 @@
 use super::enums::InstructionSourceTarget;
-use super::utils::{self, get_next_bytes_little_endian};
+use super::utils;
 use crate::emu::cpu::CPU;
 use crate::emu::memory::Memory;
 
@@ -61,6 +61,7 @@ pub fn ld_a_to_pointer(cpu: &mut CPU, memory: &mut Memory, target_pointer: Instr
     let address = match target_pointer {
         InstructionSourceTarget::BcAsPointer => cpu.registers.get_bc(),
         InstructionSourceTarget::DeAsPointer => cpu.registers.get_de(),
+        InstructionSourceTarget::CAsPointer => 0xFF00 | cpu.registers.c as u16,
         InstructionSourceTarget::HlPlus => {
             let address = cpu.registers.get_hl();
             if cpu.registers.get_hl() == u16::MAX {
@@ -89,6 +90,7 @@ pub fn ld_pointer_to_a(cpu: &mut CPU, memory: &mut Memory, source_pointer: Instr
     let address = match source_pointer {
         InstructionSourceTarget::BcAsPointer => cpu.registers.get_bc(),
         InstructionSourceTarget::DeAsPointer => cpu.registers.get_de(),
+        InstructionSourceTarget::CAsPointer => 0xFF00 | cpu.registers.c as u16,
         InstructionSourceTarget::HlPlus => {
             let address = cpu.registers.get_hl();
             cpu.registers.set_hl(address + 1);
@@ -110,6 +112,17 @@ pub fn ld_sp_to_n16(cpu: &mut CPU, memory: &mut Memory) {
     memory.addresses[address] = (cpu.sp & 0xFF) as u8;
     memory.addresses[address + 1] = (cpu.sp >> 8) as u8;
     cpu.pc += 3;
+}
+
+pub fn ld_sp_and_e8_to_hl(cpu: &mut CPU, memory: &Memory) {
+    let value: i8 = utils::get_e8(cpu, memory);
+    if value < 0 {
+        cpu.sp -= value.abs() as u16;
+    } else {
+        cpu.sp += value as u16;
+    }
+    cpu.registers.set_hl(cpu.sp);
+    cpu.pc += 2;
 }
 
 pub fn pop(cpu: &mut CPU, memory: &Memory, target: InstructionSourceTarget) {
@@ -142,15 +155,27 @@ pub fn push(cpu: &mut CPU, memory: &mut Memory, source: InstructionSourceTarget)
 }
 
 pub fn ld_a16_to_a(cpu: &mut CPU, memory: &Memory) {
-    let pointer = get_next_bytes_little_endian(cpu, memory) as usize;
+    let pointer = utils::get_next_bytes_little_endian(cpu, memory) as usize;
     cpu.registers.a = memory.addresses[pointer];
     cpu.pc += 3;
 }
 
 pub fn ld_a_to_a16(cpu: &mut CPU, memory: &mut Memory) {
-    let pointer = get_next_bytes_little_endian(cpu, memory) as usize;
+    let pointer = utils::get_next_bytes_little_endian(cpu, memory) as usize;
     memory.addresses[pointer] = cpu.registers.a;
     cpu.pc += 3;
+}
+
+pub fn ldh_a8_to_a(cpu: &mut CPU, memory: &Memory) {
+    let pointer: u16 = 0xFF00 | memory.addresses[cpu.pc as usize + 1] as u16;
+    cpu.registers.a = memory.addresses[pointer as usize];
+    cpu.pc += 2;
+}
+
+pub fn ldh_a_to_a8(cpu: &mut CPU, memory: &mut Memory) {
+    let pointer: u16 = 0xFF00 | memory.addresses[cpu.pc as usize + 1] as u16;
+    memory.addresses[pointer as usize] = cpu.registers.a;
+    cpu.pc += 2;
 }
 
 pub fn ld_hl_to_sp(cpu: &mut CPU) {

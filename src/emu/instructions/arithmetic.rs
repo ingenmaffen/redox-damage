@@ -2,6 +2,7 @@ use crate::emu::cpu::CPU;
 use crate::emu::memory::Memory;
 
 use super::enums::InstructionSourceTarget;
+use super::utils;
 
 pub fn add(cpu: &mut CPU, source: InstructionSourceTarget) {
     let added_value = match source {
@@ -53,6 +54,20 @@ pub fn add_to_hl(cpu: &mut CPU, target: InstructionSourceTarget) {
     cpu.registers.set_flag_h(new_value & 0b0000011111111111 == 0);
     cpu.registers.set_hl(new_value as u16);
     cpu.pc += 1;
+}
+
+pub fn add_to_sp(cpu: &mut CPU, memory: &Memory) {
+    let value = utils::get_e8(cpu, memory);
+    if value < 0 {
+        cpu.sp -= value.abs() as u16;
+    } else {
+        cpu.sp += value as u16;
+    }
+    cpu.registers.set_flag_z(false);
+    cpu.registers.set_flag_n(false);
+    cpu.registers.set_flag_h(cpu.sp & 0b00001111 == 0);
+    cpu.registers.set_flag_c(cpu.sp & 0x00FF == 0);
+    cpu.pc += 2;
 }
 
 pub fn adc(cpu: &mut CPU, source: InstructionSourceTarget) {
