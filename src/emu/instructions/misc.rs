@@ -1,6 +1,27 @@
 use crate::emu::cpu::CPU;
+use crate::emu::memory::Memory;
 
 pub fn nop(cpu: &mut CPU) {
+    cpu.pc += 1;
+}
+
+pub fn stop(cpu: &mut CPU, memory: &Memory) {
+    // TODO
+    cpu.pc += 2;
+}
+
+pub fn halt(cpu: &mut CPU) {
+    // TODO
+    cpu.pc += 1;
+}
+
+pub fn di(cpu: &mut CPU) {
+    // TODO
+    cpu.pc += 1;
+}
+
+pub fn ei(cpu: &mut CPU) {
+    // TODO
     cpu.pc += 1;
 }
 
