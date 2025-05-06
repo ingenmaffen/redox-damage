@@ -2,7 +2,6 @@ mod emu;
 
 use emu::boot;
 use emu::cpu::CPU;
-use emu::instruction_mapper;
 use emu::io::display;
 use emu::memory::Memory;
 use emu::rom::ROM;
@@ -20,14 +19,12 @@ fn main() {
 
     boot::boot_sequence(&mut memory);
 
-    let mut display = display::Display::default();
-    display.construct_vram_content(&memory);
-    display.render();
-
     cpu.pc = 0x0100;
     cpu.sp = 0xFFFE;
 
-    // while cpu.pc < 0xFFFF {
-    instruction_mapper::execute_instruction(&mut cpu, &mut memory);
-    // }
+    // TODO: rename
+    let mut display = display::Display::default();
+    // displaying a window is within an infinite loop
+    // so the instruction execution has been moved there
+    display.start_main_process(&mut cpu, &mut memory);
 }

@@ -1,11 +1,14 @@
+use crate::emu::cpu::CPU;
+use crate::emu::instruction_mapper;
 use crate::emu::memory::Memory;
 
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Point;
+use sdl2::render::Canvas;
 use sdl2::sys::SDL_Point;
-use std::time::Duration;
+use sdl2::video::Window;
 
 enum ColorPalette {
     Green,
@@ -16,15 +19,11 @@ enum ColorPalette {
 
 pub struct Display {
     pixels: Vec<usize>,
-    is_boot_palette: bool,
 }
 
 impl Default for Display {
     fn default() -> Self {
-        Self {
-            pixels: initialize_vram(),
-            is_boot_palette: false,
-        }
+        Self { pixels: initialize_vram() }
     }
 }
 
@@ -34,7 +33,7 @@ fn initialize_vram() -> Vec<usize> {
 }
 
 impl Display {
-    pub fn construct_vram_content(&mut self, memory: &Memory) {
+    fn construct_vram_content(&mut self, memory: &Memory) {
         let tile_start_index: u16 = 0x8000;
         let tile_diff: u16 = 0x0010;
         let row_diff: usize = 32 * 8;
@@ -55,8 +54,8 @@ impl Display {
         }
     }
 
-    pub fn render(&self) {
-        render(self);
+    pub fn start_main_process(&mut self, cpu: &mut CPU, memory: &mut Memory) {
+        start(self, cpu, memory);
     }
 }
 
@@ -84,61 +83,69 @@ fn map_palette(value: &usize) -> ColorPalette {
     }
 }
 
-fn map_bootup_palette(value: &usize) -> ColorPalette {
-    match value {
-        0 => ColorPalette::Green,
-        1 => ColorPalette::Black,
-        2 => ColorPalette::Black,
-        3 => ColorPalette::Black,
-        _ => panic!("Invalid color value"),
-    }
-}
-
 fn get_color(color: ColorPalette) -> Color {
     match color {
         ColorPalette::Green => Color::RGB(155, 188, 15),
         ColorPalette::LightGreen => Color::RGB(139, 172, 15),
         ColorPalette::DarkGreen => Color::RGB(48, 98, 48),
         ColorPalette::Black => Color::RGB(15, 56, 15),
-        _ => panic!("Invalid color value"),
     }
 }
 
-fn render(display: &Display) {
-    let tiles: u32 = 32;
-    let tile_size: u32 = 8;
-    let _width: u32 = 144;
-    let _height: u32 = 160;
+fn start(display: &mut Display, cpu: &mut CPU, memory: &mut Memory) {
+    let width: u32 = 160;
+    let height: u32 = 144;
+    let scale = 3;
 
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
 
-    let window = video_subsystem.window("Redox Damage", tiles * tile_size, tiles * tile_size).position_centered().build().unwrap();
+    let window = video_subsystem.window("Redox Damage", width * scale, height * scale).position_centered().build().unwrap();
     let mut canvas = window.into_canvas().build().unwrap();
 
     canvas.set_draw_color(get_color(ColorPalette::Green));
     canvas.clear();
     canvas.present();
+    let _ = canvas.set_scale(scale as f32, scale as f32);
+
     let mut event_pump = sdl_context.event_pump().unwrap();
-    let mut i = 0;
-    let line_width = 32 * 8;
+    let mut count = 0;
     'running: loop {
-        for pixel in display.pixels.iter() {
-            canvas.set_draw_color(get_color(map_bootup_palette(&pixel)));
-            let sdl_point: SDL_Point = SDL_Point { x: i % line_width, y: i / line_width };
-            let point: Point = Point::from_ll(sdl_point);
-            let _ = canvas.draw_point(point).expect("Render error during drawing pixel");
-            i = (i + 1) % display.pixels.len() as i32;
+        if count == 0 {
+            render(display, &memory, &mut canvas);
         }
-        canvas.present();
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit { .. } | Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
                 _ => {}
             }
         }
-        // The rest of the game loop goes here...
+        instruction_mapper::execute_instruction(cpu, memory);
+        update_ly_register(memory, count);
+        println!("executing {:2X} at {:2X}", memory.addresses[cpu.pc as usize], cpu.pc);
+        count = (count + 1) % 2000;
+    }
+}
 
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 60));
+fn render(display: &mut Display, memory: &Memory, canvas: &mut Canvas<Window>) {
+    let mut i = 0;
+    let line_width = 32 * 8;
+    display.construct_vram_content(memory);
+    for pixel in display.pixels.iter() {
+        canvas.set_draw_color(get_color(map_palette(&pixel)));
+        let sdl_point: SDL_Point = SDL_Point { x: i % line_width, y: i / line_width };
+        let point: Point = Point::from_ll(sdl_point);
+        let _ = canvas.draw_point(point).expect("Render error during drawing pixel");
+        i = (i + 1) % display.pixels.len() as i32;
+    }
+    canvas.present();
+}
+
+fn update_ly_register(memory: &mut Memory, index: i32) {
+    if index % 10 == 0 {
+        memory.addresses[0xFF44] += 1;
+    }
+    if memory.addresses[0xFF44] >= 154 {
+        memory.addresses[0xFF44] = 0;
     }
 }
