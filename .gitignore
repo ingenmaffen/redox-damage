@@ -18,3 +18,6 @@ target/
 
 # test rom
 rom.gb
+
+# SLD2 files
+SDL2.*
