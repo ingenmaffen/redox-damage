@@ -47,16 +47,12 @@ impl Display {
                 let lower = memory.addresses[index as usize + i + 1];
                 for j in 0..8 {
                     let color = get_bit_at_pos(upper, j) << 1 | get_bit_at_pos(lower, j);
-                    let pixel_position = (tile_index * 8) + ((i / 2) * row_diff) + 7 - j as usize;
+                    let pixel_position = (tile_index / 32) * row_diff * 8 + ((tile_index % 32) * 8) + ((i / 2) * row_diff) + 7 - j as usize;
                     self.pixels[pixel_position] = color as usize;
-                    if color > 0 {
-                        println!("pixelPos: {}, x: {}, y: {}", pixel_position, pixel_position % 32, pixel_position / 32);
-                    }
                 }
             }
             tile_index += 1;
         }
-        println!("{tile_index}");
     }
 
     pub fn render(&self) {
@@ -130,10 +126,6 @@ fn render(display: &Display) {
         for pixel in display.pixels.iter() {
             canvas.set_draw_color(get_color(map_bootup_palette(&pixel)));
             let sdl_point: SDL_Point = SDL_Point { x: i % line_width, y: i / line_width };
-            if pixel > &0 {
-                print!("{} ", pixel);
-                print!("x: {}, y: {} \n", sdl_point.x, sdl_point.y);
-            }
             let point: Point = Point::from_ll(sdl_point);
             let _ = canvas.draw_point(point).expect("Render error during drawing pixel");
             i = (i + 1) % display.pixels.len() as i32;
