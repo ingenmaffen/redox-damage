@@ -148,8 +148,8 @@ pub fn push(cpu: &mut CPU, memory: &mut Memory, source: InstructionSourceTarget)
         InstructionSourceTarget::AF => (cpu.registers.a, cpu.registers.get_f()),
         _ => panic!("Target not supported"),
     };
-    memory.addresses[cpu.sp as usize - 1] = values.0;
-    memory.addresses[cpu.sp as usize - 2] = values.1;
+    memory.addresses[cpu.sp as usize] = values.0;
+    memory.addresses[cpu.sp as usize - 1] = values.1;
     cpu.sp -= 2;
     cpu.pc += 1;
 }

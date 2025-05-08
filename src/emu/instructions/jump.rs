@@ -65,12 +65,17 @@ pub fn call_with_operand(cpu: &mut CPU, memory: &mut Memory, additional_operand:
     }
 }
 
-pub fn call(cpu: &mut CPU, memory: &Memory) {
-    cpu.sp = cpu.pc + 3;
+pub fn call(cpu: &mut CPU, memory: &mut Memory) {
+    cpu.pc += 3;
+    let value1: u8 = (cpu.pc >> 8) as u8;
+    let value2: u8 = (cpu.pc & 0x00FF) as u8;
+    memory.addresses[cpu.sp as usize] = value1;
+    memory.addresses[cpu.sp as usize - 1] = value2;
+    cpu.sp -= 2;
     jp(cpu, memory);
 }
 
-pub fn ret_with_operand(cpu: &mut CPU, additional_operand: JpOperands) {
+pub fn ret_with_operand(cpu: &mut CPU, memory: &Memory, additional_operand: JpOperands) {
     let flag_value = match additional_operand {
         JpOperands::Z => cpu.registers.get_flag_z(),
         JpOperands::NZ => !cpu.registers.get_flag_z(),
@@ -78,19 +83,23 @@ pub fn ret_with_operand(cpu: &mut CPU, additional_operand: JpOperands) {
         JpOperands::NC => !cpu.registers.get_flag_c(),
     };
     if flag_value {
-        ret(cpu);
+        ret(cpu, memory);
     } else {
         cpu.pc += 1;
     }
 }
 
-pub fn ret(cpu: &mut CPU) {
-    cpu.pc = cpu.sp;
+pub fn ret(cpu: &mut CPU, memory: &Memory) {
+    let value1: u16 = memory.addresses[cpu.sp as usize] as u16;
+    let value2: u16 = memory.addresses[cpu.sp as usize + 1] as u16;
+    let value: u16 = value2 << 8 | value1;
+    cpu.pc = value;
+    cpu.sp += 2;
 }
 
-pub fn reti(cpu: &mut CPU) {
+pub fn reti(cpu: &mut CPU, memory: &Memory) {
     misc::ei(cpu);
-    ret(cpu);
+    ret(cpu, memory);
 }
 
 pub fn rst(cpu: &mut CPU, address: u8) {
