@@ -2,6 +2,7 @@ use crate::emu::cpu::CPU;
 use crate::emu::memory::Memory;
 
 use super::enums::InstructionSourceTarget;
+use super::utils;
 
 pub fn rlc(cpu: &mut CPU, target: InstructionSourceTarget) {
     match target {
@@ -19,7 +20,8 @@ pub fn rlc(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn rlc_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_rlc_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_rlc_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_rlc_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -56,7 +58,8 @@ pub fn rrc(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn rrc_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_rrc_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_rrc_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_rrc_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -85,7 +88,8 @@ pub fn rl(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn rl_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_rl_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_rl_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_rl_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -114,7 +118,8 @@ pub fn rr(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn rr_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_rr_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_rr_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_rr_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -143,7 +148,8 @@ pub fn sla(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn sla_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_sla_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_sla_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_sla_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -169,7 +175,8 @@ pub fn sra(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn sra_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_sra_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_sra_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_sra_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -199,7 +206,8 @@ pub fn swap(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn swap_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_swap_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_swap_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_swap_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -226,7 +234,8 @@ pub fn srl(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn srl_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_srl_result_and_set_flags(cpu, memory.addresses[address]);
+    let value = get_srl_result_and_set_flags(cpu, utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
 }
 
 fn get_srl_result_and_set_flags(cpu: &mut CPU, original_value: u8) -> u8 {
@@ -255,7 +264,7 @@ pub fn bit(cpu: &mut CPU, memory: &Memory, register: InstructionSourceTarget, po
         InstructionSourceTarget::E => cpu.registers.e & byte,
         InstructionSourceTarget::H => cpu.registers.h & byte,
         InstructionSourceTarget::L => cpu.registers.l & byte,
-        InstructionSourceTarget::HlAsPointer => memory.addresses[cpu.registers.get_hl() as usize] & byte,
+        InstructionSourceTarget::HlAsPointer => utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize) & byte,
         InstructionSourceTarget::A => cpu.registers.a & byte,
         _ => panic!("Source not supported"),
     };
@@ -290,7 +299,8 @@ pub fn res(cpu: &mut CPU, memory: &mut Memory, register: InstructionSourceTarget
         InstructionSourceTarget::L => cpu.registers.l = cpu.registers.l & byte,
         InstructionSourceTarget::HlAsPointer => {
             let address = cpu.registers.get_hl() as usize;
-            memory.addresses[address] = memory.addresses[address] & byte;
+            let value = utils::read_byte_from_memory(memory, address) & byte;
+            utils::write_byte_to_memory(memory, address, value);
         }
         InstructionSourceTarget::A => cpu.registers.a = cpu.registers.a & byte,
         _ => panic!("Source not supported"),
@@ -318,7 +328,8 @@ pub fn set(cpu: &mut CPU, memory: &mut Memory, register: InstructionSourceTarget
         InstructionSourceTarget::L => cpu.registers.l = cpu.registers.l | byte,
         InstructionSourceTarget::HlAsPointer => {
             let address = cpu.registers.get_hl() as usize;
-            memory.addresses[address] = memory.addresses[address] | byte;
+            let value = utils::read_byte_from_memory(memory, address) | byte;
+            utils::write_byte_to_memory(memory, address, value);
         }
         InstructionSourceTarget::A => cpu.registers.a = cpu.registers.a | byte,
         _ => panic!("Source not supported"),

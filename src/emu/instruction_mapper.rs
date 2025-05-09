@@ -2,10 +2,11 @@ use super::cpu::CPU;
 use super::instructions;
 use super::instructions::enums::InstructionSourceTarget;
 use super::instructions::enums::JpOperands;
+use super::instructions::utils;
 use super::memory::Memory;
 
 pub fn execute_instruction(cpu: &mut CPU, memory: &mut Memory) {
-    let operation: u8 = memory.addresses[cpu.pc as usize];
+    let operation: u8 = utils::read_byte_from_memory(memory, cpu.pc as usize);
     handle_instruction(operation, cpu, memory);
 }
 
@@ -273,7 +274,7 @@ fn handle_instruction(opcode: u8, cpu: &mut CPU, memory: &mut Memory) {
 }
 
 fn handle_cb_prefixed_instruction(cpu: &mut CPU, memory: &mut Memory) {
-    let cb_instruction = memory.addresses[cpu.pc as usize + 1];
+    let cb_instruction = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     match cb_instruction {
         0x00 => instructions::bit::rlc(cpu, InstructionSourceTarget::B),
         0x01 => instructions::bit::rlc(cpu, InstructionSourceTarget::C),

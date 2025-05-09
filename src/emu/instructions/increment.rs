@@ -1,4 +1,5 @@
 use crate::emu::cpu::CPU;
+use crate::emu::instructions::utils;
 use crate::emu::memory::Memory;
 
 use super::enums::InstructionSourceTarget;
@@ -21,9 +22,9 @@ pub fn inc(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn inc_r8_at_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] += 1;
-    let new_value = memory.addresses[address];
-    set_inc_flags(new_value, cpu);
+    let value = utils::read_byte_from_memory(memory, address) + 1;
+    utils::write_byte_to_memory(memory, address, value);
+    set_inc_flags(value, cpu);
 }
 
 fn inc_r8(cpu: &mut CPU, target: InstructionSourceTarget) {

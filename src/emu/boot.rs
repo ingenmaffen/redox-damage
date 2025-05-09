@@ -1,3 +1,4 @@
+use super::instructions::utils;
 use super::memory::Memory;
 
 pub fn boot_sequence(memory: &mut Memory) {
@@ -8,11 +9,11 @@ pub fn boot_sequence(memory: &mut Memory) {
 fn setup_tile_data(memory: &mut Memory) {
     let mut tile: u8 = 0x01;
     for i in 0x9904..=0x990F {
-        memory.addresses[i] = tile;
+        utils::write_byte_to_memory(memory, i, tile);
         tile += 1;
     }
     for i in 0x9924..=0x992F {
-        memory.addresses[i] = tile;
+        utils::write_byte_to_memory(memory, i, tile);
         tile += 1;
     }
 }
@@ -20,7 +21,7 @@ fn setup_tile_data(memory: &mut Memory) {
 fn unpack_and_load_logo(memory: &mut Memory) {
     let mut memory_index: usize = 0x8010;
     for i in 0x0104..=0x0133 {
-        let byte = memory.addresses[i as usize];
+        let byte = utils::read_byte_from_memory(memory, i);
         let upper = (byte & 0b11110000) >> 4;
         let lower = byte & 0b00001111;
         load_to_vram(memory, upper, memory_index);
@@ -34,9 +35,9 @@ fn load_to_vram(memory: &mut Memory, value: u8, index: usize) {
     let unpacked = get_current_value_unpacked(value);
     let mut memory_index = index;
     for _ in 0..2 {
-        memory.addresses[memory_index] = unpacked;
+        utils::write_byte_to_memory(memory, memory_index, unpacked);
         memory_index += 1;
-        memory.addresses[memory_index] = 0x00;
+        utils::write_byte_to_memory(memory, memory_index, 0x00);
         memory_index += 1;
     }
 }

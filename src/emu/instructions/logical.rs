@@ -2,6 +2,7 @@ use crate::emu::cpu::CPU;
 use crate::emu::memory::Memory;
 
 use super::enums::InstructionSourceTarget;
+use super::utils;
 
 pub fn and(cpu: &mut CPU, source: InstructionSourceTarget) {
     let and_value = match source {
@@ -21,14 +22,14 @@ pub fn and(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn and_hl(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let and_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     cpu.registers.a = cpu.registers.a & and_value;
     set_and_flags(cpu);
     cpu.pc += 1;
 }
 
 pub fn and_n8(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let and_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     cpu.registers.a = cpu.registers.a & and_value;
     set_and_flags(cpu);
     cpu.pc += 2;
@@ -60,15 +61,15 @@ pub fn xor(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn xor_hl(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
-    cpu.registers.a = cpu.registers.a ^ and_value;
+    let xor_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
+    cpu.registers.a = cpu.registers.a ^ xor_value;
     set_or_xor_flags(cpu);
     cpu.pc += 1;
 }
 
 pub fn xor_n8(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
-    cpu.registers.a = cpu.registers.a ^ and_value;
+    let xor_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
+    cpu.registers.a = cpu.registers.a ^ xor_value;
     set_or_xor_flags(cpu);
     cpu.pc += 2;
 }
@@ -91,15 +92,15 @@ pub fn or(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn or_hl(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
-    cpu.registers.a = cpu.registers.a | and_value;
+    let or_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
+    cpu.registers.a = cpu.registers.a | or_value;
     set_or_xor_flags(cpu);
     cpu.pc += 1;
 }
 
 pub fn or_n8(cpu: &mut CPU, memory: &Memory) {
-    let and_value: u8 = memory.addresses[cpu.pc as usize + 1];
-    cpu.registers.a = cpu.registers.a | and_value;
+    let or_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
+    cpu.registers.a = cpu.registers.a | or_value;
     set_or_xor_flags(cpu);
     cpu.pc += 2;
 }

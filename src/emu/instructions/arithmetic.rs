@@ -22,14 +22,14 @@ pub fn add(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn add_hl(cpu: &mut CPU, memory: &Memory) {
-    let added_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let added_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     set_add_flags(cpu, added_value);
     handle_addition(cpu, added_value);
     cpu.pc += 1;
 }
 
 pub fn add_n8(cpu: &mut CPU, memory: &Memory) {
-    let added_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let added_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     set_add_flags(cpu, added_value);
     handle_addition(cpu, added_value);
     cpu.pc += 2;
@@ -91,7 +91,7 @@ pub fn adc(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn adc_hl(cpu: &mut CPU, memory: &Memory) {
-    let mut added_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let mut added_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     if cpu.registers.get_flag_c() {
         added_value += 1;
     }
@@ -101,7 +101,7 @@ pub fn adc_hl(cpu: &mut CPU, memory: &Memory) {
 }
 
 pub fn adc_n8(cpu: &mut CPU, memory: &Memory) {
-    let mut added_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let mut added_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     if cpu.registers.get_flag_c() {
         added_value += 1;
     }
@@ -145,13 +145,13 @@ pub fn sub(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn sub_hl(cpu: &mut CPU, memory: &Memory) {
-    let subtracted_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let subtracted_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     handle_sub(cpu, subtracted_value, false);
     cpu.pc += 1;
 }
 
 pub fn sub_n8(cpu: &mut CPU, memory: &Memory) {
-    let subtracted_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let subtracted_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     handle_sub(cpu, subtracted_value, false);
     cpu.pc += 2;
 }
@@ -173,13 +173,13 @@ pub fn cp(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn cp_hl(cpu: &mut CPU, memory: &Memory) {
-    let subtracted_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let subtracted_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     set_sub_flags(cpu, subtracted_value, false);
     cpu.pc += 1;
 }
 
 pub fn cp_n8(cpu: &mut CPU, memory: &Memory) {
-    let subtracted_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let subtracted_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     set_sub_flags(cpu, subtracted_value, false);
     cpu.pc += 2;
 }
@@ -205,7 +205,7 @@ pub fn sbc(cpu: &mut CPU, source: InstructionSourceTarget) {
 }
 
 pub fn sbc_hl(cpu: &mut CPU, memory: &Memory) {
-    let mut subtracted_value: u8 = memory.addresses[cpu.registers.get_hl() as usize];
+    let mut subtracted_value = utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize);
     if cpu.registers.get_flag_c() {
         subtracted_value += 1;
     }
@@ -214,7 +214,7 @@ pub fn sbc_hl(cpu: &mut CPU, memory: &Memory) {
 }
 
 pub fn sbc_n8(cpu: &mut CPU, memory: &Memory) {
-    let mut subtracted_value: u8 = memory.addresses[cpu.pc as usize + 1];
+    let mut subtracted_value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     if cpu.registers.get_flag_c() {
         subtracted_value += 1;
     }

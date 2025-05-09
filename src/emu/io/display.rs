@@ -144,8 +144,9 @@ fn render(display: &mut Display, memory: &Memory, canvas: &mut Canvas<Window>) {
 fn update_ly_register(memory: &mut Memory, index: i32) {
     if index % 10 == 0 {
         memory.addresses[0xFF44] += 1;
-    }
+    };
+
     if memory.addresses[0xFF44] >= 154 {
         memory.addresses[0xFF44] = 0;
-    }
+    };
 }

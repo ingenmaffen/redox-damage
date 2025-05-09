@@ -1,7 +1,7 @@
-use crate::emu::cpu::CPU;
-use crate::emu::memory::Memory;
-
 use super::enums::InstructionSourceTarget;
+use crate::emu::cpu::CPU;
+use crate::emu::instructions::utils;
+use crate::emu::memory::Memory;
 
 pub fn dec(cpu: &mut CPU, target: InstructionSourceTarget) {
     match target {
@@ -21,8 +21,9 @@ pub fn dec(cpu: &mut CPU, target: InstructionSourceTarget) {
 
 pub fn dec_r8_at_hl(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = cpu.registers.get_hl() as usize;
-    memory.addresses[address] = get_new_value_after_dec(memory.addresses[address]);
-    set_dec_flags(memory.addresses[address], cpu);
+    let value = get_new_value_after_dec(utils::read_byte_from_memory(memory, address));
+    utils::write_byte_to_memory(memory, address, value);
+    set_dec_flags(value, cpu);
 }
 
 fn dec_r8(cpu: &mut CPU, target: InstructionSourceTarget) {

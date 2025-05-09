@@ -11,7 +11,7 @@ pub fn ld_r8_r8(cpu: &mut CPU, memory: &mut Memory, target: InstructionSourceTar
         InstructionSourceTarget::E => cpu.registers.e,
         InstructionSourceTarget::H => cpu.registers.h,
         InstructionSourceTarget::L => cpu.registers.l,
-        InstructionSourceTarget::HlAsPointer => memory.addresses[cpu.registers.get_hl() as usize],
+        InstructionSourceTarget::HlAsPointer => utils::read_byte_from_memory(memory, cpu.registers.get_hl() as usize),
         InstructionSourceTarget::A => cpu.registers.a,
         _ => panic!("Source register not supported"),
     };
@@ -23,7 +23,7 @@ pub fn ld_r8_r8(cpu: &mut CPU, memory: &mut Memory, target: InstructionSourceTar
         InstructionSourceTarget::E => cpu.registers.e = value,
         InstructionSourceTarget::H => cpu.registers.h = value,
         InstructionSourceTarget::L => cpu.registers.l = value,
-        InstructionSourceTarget::HlAsPointer => memory.addresses[cpu.registers.get_hl() as usize] = value,
+        InstructionSourceTarget::HlAsPointer => utils::write_byte_to_memory(memory, cpu.registers.get_hl() as usize, value),
         InstructionSourceTarget::A => cpu.registers.a = value,
         _ => panic!("Target register not supported"),
     }
@@ -42,7 +42,7 @@ pub fn ld_n16(cpu: &mut CPU, memory: &mut Memory, target: InstructionSourceTarge
 }
 
 pub fn ld_n8(cpu: &mut CPU, memory: &mut Memory, target: InstructionSourceTarget) {
-    let value = memory.addresses[cpu.pc as usize + 1];
+    let value = utils::read_byte_from_memory(memory, cpu.pc as usize + 1);
     match target {
         InstructionSourceTarget::B => cpu.registers.b = value,
         InstructionSourceTarget::C => cpu.registers.c = value,
@@ -50,7 +50,7 @@ pub fn ld_n8(cpu: &mut CPU, memory: &mut Memory, target: InstructionSourceTarget
         InstructionSourceTarget::E => cpu.registers.e = value,
         InstructionSourceTarget::H => cpu.registers.h = value,
         InstructionSourceTarget::L => cpu.registers.l = value,
-        InstructionSourceTarget::HlAsPointer => memory.addresses[cpu.registers.get_hl() as usize] = value,
+        InstructionSourceTarget::HlAsPointer => utils::write_byte_to_memory(memory, cpu.registers.get_hl() as usize, value),
         InstructionSourceTarget::A => cpu.registers.a = value,
         _ => panic!("Target register not supported"),
     }
@@ -82,11 +82,11 @@ pub fn ld_a_to_pointer(cpu: &mut CPU, memory: &mut Memory, target_pointer: Instr
         }
         _ => panic!("Target pointer not supported"),
     };
-    memory.addresses[address as usize] = cpu.registers.a;
+    utils::write_byte_to_memory(memory, address as usize, cpu.registers.a);
     cpu.pc += 1;
 }
 
-pub fn ld_pointer_to_a(cpu: &mut CPU, memory: &mut Memory, source_pointer: InstructionSourceTarget) {
+pub fn ld_pointer_to_a(cpu: &mut CPU, memory: &Memory, source_pointer: InstructionSourceTarget) {
     let address = match source_pointer {
         InstructionSourceTarget::BcAsPointer => cpu.registers.get_bc(),
         InstructionSourceTarget::DeAsPointer => cpu.registers.get_de(),
@@ -103,14 +103,14 @@ pub fn ld_pointer_to_a(cpu: &mut CPU, memory: &mut Memory, source_pointer: Instr
         }
         _ => panic!("Source pointer not supported"),
     };
-    cpu.registers.a = memory.addresses[address as usize];
+    cpu.registers.a = utils::read_byte_from_memory(memory, address as usize);
     cpu.pc += 1;
 }
 
 pub fn ld_sp_to_n16(cpu: &mut CPU, memory: &mut Memory) {
     let address: usize = utils::get_next_bytes_little_endian(cpu, memory) as usize;
-    memory.addresses[address] = (cpu.sp & 0xFF) as u8;
-    memory.addresses[address + 1] = (cpu.sp >> 8) as u8;
+    utils::write_byte_to_memory(memory, address, (cpu.sp & 0xFF) as u8);
+    utils::write_byte_to_memory(memory, address + 1, (cpu.sp >> 8) as u8);
     cpu.pc += 3;
 }
 
@@ -126,8 +126,8 @@ pub fn ld_sp_and_e8_to_hl(cpu: &mut CPU, memory: &Memory) {
 }
 
 pub fn pop(cpu: &mut CPU, memory: &Memory, target: InstructionSourceTarget) {
-    let value1: u16 = memory.addresses[cpu.sp as usize] as u16;
-    let value2: u16 = memory.addresses[cpu.sp as usize + 1] as u16;
+    let value1 = utils::read_byte_from_memory(memory, cpu.pc as usize) as u16;
+    let value2 = utils::read_byte_from_memory(memory, cpu.pc as usize + 1) as u16;
     let value: u16 = value2 << 8 | value1;
     match target {
         InstructionSourceTarget::BC => cpu.registers.set_bc(value),
@@ -148,33 +148,33 @@ pub fn push(cpu: &mut CPU, memory: &mut Memory, source: InstructionSourceTarget)
         InstructionSourceTarget::AF => (cpu.registers.a, cpu.registers.get_f()),
         _ => panic!("Target not supported"),
     };
-    memory.addresses[cpu.sp as usize] = values.0;
-    memory.addresses[cpu.sp as usize - 1] = values.1;
+    utils::write_byte_to_memory(memory, cpu.sp as usize, values.0);
+    utils::write_byte_to_memory(memory, cpu.sp as usize - 1, values.1);
     cpu.sp -= 2;
     cpu.pc += 1;
 }
 
 pub fn ld_a16_to_a(cpu: &mut CPU, memory: &Memory) {
     let pointer = utils::get_next_bytes_little_endian(cpu, memory) as usize;
-    cpu.registers.a = memory.addresses[pointer];
+    cpu.registers.a = utils::read_byte_from_memory(memory, pointer);
     cpu.pc += 3;
 }
 
 pub fn ld_a_to_a16(cpu: &mut CPU, memory: &mut Memory) {
     let pointer = utils::get_next_bytes_little_endian(cpu, memory) as usize;
-    memory.addresses[pointer] = cpu.registers.a;
+    utils::write_byte_to_memory(memory, pointer, cpu.registers.a);
     cpu.pc += 3;
 }
 
 pub fn ldh_a8_to_a(cpu: &mut CPU, memory: &Memory) {
-    let pointer: u16 = 0xFF00 | memory.addresses[cpu.pc as usize + 1] as u16;
-    cpu.registers.a = memory.addresses[pointer as usize];
+    let pointer: usize = 0xFF00 | utils::read_byte_from_memory(memory, cpu.pc as usize + 1) as usize;
+    cpu.registers.a = utils::read_byte_from_memory(memory, pointer);
     cpu.pc += 2;
 }
 
 pub fn ldh_a_to_a8(cpu: &mut CPU, memory: &mut Memory) {
-    let pointer: u16 = 0xFF00 | memory.addresses[cpu.pc as usize + 1] as u16;
-    memory.addresses[pointer as usize] = cpu.registers.a;
+    let pointer: usize = 0xFF00 | utils::read_byte_from_memory(memory, cpu.pc as usize + 1) as usize;
+    utils::write_byte_to_memory(memory, pointer, cpu.registers.a);
     cpu.pc += 2;
 }
 
